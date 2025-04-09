@@ -3,7 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminController;
-
+use App\Http\Controllers\Admin\ArticleController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,6 +22,9 @@ Route::middleware('auth')->group(function () {
 // Admin Routes
 Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // CRUD Artikel
+    Route::resource('articles', ArticleController::class)->names('articles');
 });
 
 require __DIR__.'/auth.php';
