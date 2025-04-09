@@ -5,28 +5,23 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Article;
+use Illuminate\Support\Facades\Storage;
 
 class ArticleController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Tampilkan daftar artikel (sementara redirect ke dashboard)
     public function index()
     {
-        //
+        return redirect()->route('admin.dashboard');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Tampilkan form tambah artikel
     public function create()
     {
         return view('admin.articles.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Simpan artikel baru
     public function store(Request $request)
     {
         $request->validate([
@@ -34,51 +29,91 @@ class ArticleController extends Controller
             'content' => 'required|string',
             'image' => 'nullable|image|max:2048',
         ]);
-    
+
         $data = $request->only(['title', 'content']);
-    
+
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('images', 'public');
-            $data['image'] = $imagePath;
+            $data['image'] = $request->file('image')->store('images', 'public');
         }
-    
+
         $data['author'] = auth()->user()->name ?? 'Admin';
-    
+
         Article::create($data);
-    
+
         return redirect()->route('admin.dashboard')->with('success', 'Artikel berhasil ditambahkan.');
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Tampilkan detail artikel
     public function show(string $id)
     {
         $article = Article::findOrFail($id);
         return view('admin.articles.show', compact('article'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Tampilkan form edit artikel
     public function edit(string $id)
     {
-        //
+        $article = Article::findOrFail($id);
+        return view('admin.articles.edit', compact('article'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Update artikel
     public function update(Request $request, string $id)
     {
-        //
+        $article = Article::findOrFail($id);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'image' => 'nullable|image|max:2048',
+        ]);
+
+        $data = $request->only(['title', 'content']);
+
+        if ($request->hasFile('image')) {
+            if ($article->image) {
+                Storage::disk('public')->delete($article->image);
+            }
+            $data['image'] = $request->file('image')->store('images', 'public');
+        }
+
+        $article->update($data);
+
+        return redirect()->route('admin.dashboard')->with('success', 'Artikel berhasil diperbarui.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Hapus artikel
     public function destroy(string $id)
     {
-        //
+        $article = Article::findOrFail($id);
+
+        if ($article->image) {
+            Storage::disk('public')->delete($article->image);
+        }
+
+        $article->delete();
+
+        return redirect()->route('admin.dashboard')->with('success', 'Artikel berhasil dihapus.');
+    }
+
+    // Upload gambar dari CKEditor
+    public function upload(Request $request)
+    {
+        if ($request->hasFile('upload')) {
+            $file = $request->file('upload');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('uploads', $filename, 'public');
+
+            return response()->json([
+                'uploaded' => 1,
+                'fileName' => $filename,
+                'url' => asset('storage/' . $path),
+            ]);
+        }
+
+        return response()->json([
+            'uploaded' => 0,
+            'error' => ['message' => 'Upload gagal']
+        ]);
     }
 }

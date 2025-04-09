@@ -25,6 +25,9 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
 
     // CRUD Artikel
     Route::resource('articles', ArticleController::class)->names('articles');
+
+     // Upload gambar dari CKEditor
+     Route::post('/articles/upload', [ArticleController::class, 'upload'])->name('articles.upload');
 });
 
 require __DIR__.'/auth.php';

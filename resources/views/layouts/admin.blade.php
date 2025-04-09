@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- Styling agar gambar responsif dalam editor CKEditor --}}
+    <style>
+        .ck-content img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-wide">
 
@@ -70,6 +78,11 @@
         });
     </script>
 
+    {{-- Script tambahan dari halaman --}}
+    @yield('scripts')
+
 </body>
 </html>
+
+
 
